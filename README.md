@@ -29,7 +29,7 @@ task-tracker/
 To run the application locally:
 - Clone the repository and enter the workspace:
 ```bash
-cd weather-web-app-rm
+cd task-tracker-rm
 ```
 
 - Install the required dependencies:
