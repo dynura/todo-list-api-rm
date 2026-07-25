@@ -1,46 +1,44 @@
-# Task Tracker App
-This repository contains my completed solution to the [Task Tracker](https://roadmap.sh/projects/task-tracker-js) challenge on roadmap.sh.
+# Task Tracker API & Web App (FastAPI & React)
 
-## Project Details
-The objective of this project is to create a task tracker that lets users add new tasks, mark them as complete, or delete them. Completed tasks will be moved to the end of the list and will have strikethrough, and users can unmark tasks to return them to the pending list.
+This repository contains my completed full-stack solution to the [To-Do List API](https://roadmap.sh/projects/todo-list-api) challenge on roadmap.sh, featuring a secure RESTful API built with Python FastAPI, an interactive React frontend, PostgreSQL/SQLite database support, JWT authentication, rate limiting, and comprehensive automated testing. I reused [task-tracker-rm](https://github.com/dynura/task-tracker-rm) and [task-tracker-rm-b](https://github.com/dynura/task-tracker-rm-b) initial setup combined for this project.
+
+## Features
+- **FastAPI RESTful Backend**: High-performance asynchronous API endpoints handling user operations, secure token generation, and structured task data management.
+- **Interactive React Frontend**: Modern single-page application built with Vite and React, offering smooth UI updates, task filtering, search capabilities, and a polished dashboard.
+- **Advanced Authentication & Security**: Secure user registration, credential hashing with `bcrypt`, access/refresh token rotation using JWT, and rate limiting via `slowapi`.
+- **Flexible Database Architecture**: Configured with SQLAlchemy ORM supporting local SQLite development (`tasks.db`) and cloud-hosted PostgreSQL (Supabase) for production deployment.
 
 ## Requirements Met
-- **Array Object State Architecture:** Stores tasks inside an array of objects utilizing strict requirement parameter mappings (`description` and `completed`).
-- **Dynamic End-of-List Sorting Matrix:** Whenever a task is marked as complete, the array manipulation handler pushes the item to the absolute bottom of the list stack. Unmarking an entry returns it cleanly back to the pending stream pool.
-- **Dynamic React Re-rendering Engine:** Implements the core concept of `renderTasks` natively through React's virtual DOM reconciliation loop. Adding, toggling, updating, or purging array objects instantly purges old DOM elements and updates the view layer with zero manual node traversal.
-- **Strikethrough Treatment:** Completed items are immediately styled with a clean strikethrough effect and high-precision opacity reductions to keep active tasks prominent.
-- **Inline Title Micro-editing:** Allows fast, zero-popup item name changes via text input transformations triggered by clicking straight onto an uncompleted entry title.
-- **Persistent Cache Systems:** Automatically reads and writes state mutations cleanly to `localStorage` hooks.
-- **Monochrome Styling & Theme System:** Designed using high-contrast variables, complete with light/dark theme toggle support.
+- **User Registration & Authentication**: Secure endpoints (`POST /auth/register`, `POST /auth/login`, `POST /auth/refresh`) with email validation and role/user verification handling.
+- **Full CRUD Operations for To-Do List**: Complete management of tasks (`POST /todos`, `GET /todos`, `PUT /todos/{id}`, `DELETE /todos/{id}`) restricted solely to authorized users.
+- **Pagination, Filtering, and Sorting**: Advanced querying support on task endpoints allowing parameters for pagination (`skip`, `limit`), completion filters (`completed`), text search, and dynamic sorting.
+- **Data Validation & Error Handling**: Robust payload validation enforced by Pydantic schemas alongside standardized, secure exception handlers.
+- **Bonus Implementations**: Automated unit test suite via `pytest`, request throttling/rate limiting, and dual-token refresh mechanics.
 
-## File Structure
+## How to Run Locally
 
-```text
-task-tracker/
-├── src/
-│   ├── App.jsx                # Core state arrays, manipulation functions & markup hooks
-│   └── index.css              # Custom Tailwind directives & monochrome color scales
-├── package.json               # Package metadata and compiler configuration rules
-├── vite.config.js             # Asset building configuration presets
-└── README.md                  # Comprehensive architectural project documentation
-```
+### 1. Backend Setup (FastAPI)
+1. Navigate to the backend directory and install Python dependencies:
+    ```bash
+    cd backend
+    pip install -r requirements.txt
+    ```
+2. Run the automated test suite to verify setup:
+    ```bash
+    python -m pytest
+    ```
+3. Start the FastAPI development server:
+    ```bash
+    uvicorn app.main:app --reload
+    ```
 
-## Setup & Preview
-To run the application locally:
-- Clone the repository and enter the workspace:
-```bash
-cd task-tracker-rm
-```
-
-- Install the required dependencies:
-```bash
-npm install
-```
-
-- Boot up the development server:
-```bash
-npm run dev
-```
-
-- Launch the platform:
-Navigate to the local URL provided by your terminal (typically http://localhost:5173/) to interact with the dashboard.
+### 2. Frontend Setup (React / Vite)
+1. Open a new terminal and install frontend dependencies from the root directory:
+    ```bash
+    npm install
+    ```
+2. Start the Vite development server:
+    ```bash
+    npm run dev
+    ```
+3. Open your browser and navigate to the local development URL provided by Vite.
