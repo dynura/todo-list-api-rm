@@ -207,7 +207,7 @@ def delete_todo(
 dist = os.path.join(os.path.dirname(__file__), "../../dist")
 
 if os.path.exists(dist):
-    app.mount("/assets", StaticFiles(directory=os.path.join(frontend_dist, "assets")), name="assets")
+    app.mount("/assets", StaticFiles(directory=os.path.join(dist, "assets")), name="assets")
 
     @app.get("/{full_path:path}")
     async def serve_frontend(full_path: str):
