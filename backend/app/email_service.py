@@ -9,7 +9,7 @@ def send_email(db: Session, to_email: str, subject: str, body: str) -> bool:
     port = int(os.getenv("SMTP_PORT", 587))
     username = os.getenv("SMTP_USER")
     password = os.getenv("SMTP_PASSWORD")
-    from_email = os.getenv("EMAILS_FROM_EMAIL")
+    from_email = os.getenv("SMTP_FROM_EMAIL")
     
     if not host or not username or not password or not from_email:
         print("CRITICAL: SMTP environment variables are not fully configured.")
