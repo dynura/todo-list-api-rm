@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import API from '../api/api'; // Or your relative API instance
+import API from '../../api/api';
 
 export default function VerifyEmail({ onSwitchToLogin }) {
     const urlParams = new URLSearchParams(window.location.search);
