@@ -9,7 +9,8 @@ load_dotenv(dotenv_path=root_dir / ".env")
 
 from fastapi import FastAPI, Depends, HTTPException, status, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from pydantic import BaseModel
@@ -19,7 +20,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 from .database import engine, Base, get_db
-from .models import User, Todo, SMTPConfig
+from .models import User, Todo
 from .schemas import TodoCreate, TodoResponse, TodoUpdate
 from .auth import router as auth_router, get_current_user
 
@@ -69,38 +70,13 @@ async def global_exception_handler(request: Request, exc: Exception):
         content={"detail": "An internal server error occurred. Please try again later."}
     )
 
-@app.get("/")
+@app.get("/api/health")
 def read_root():
     return {"status": "online", "message": "FastAPI backend is ready!"}
 
 @app.get("/protected")
 def read_protected_route(current_user: str = Depends(get_current_user)):
     return {"message": f"Hello {current_user}, you have access to this protected endpoint!"}
-
-# --- ADMIN / SETUP ENDPOINTS ---
-
-class SMTPCreateSchema(BaseModel):
-    username: str
-    password: str
-    from_email: str
-    host: str = "smtp-relay.brevo.com"
-    port: int = 587
-
-@app.post("/admin/setup-smtp", tags=["Admin Setup"])
-def setup_smtp(config: SMTPCreateSchema, db: Session = Depends(get_db)):
-    db.query(SMTPConfig).update({"is_active": False})
-    
-    new_config = SMTPConfig(
-        host=config.host,
-        port=config.port,
-        username=config.username,
-        password=config.password,
-        from_email=config.from_email,
-        is_active=True
-    )
-    db.add(new_config)
-    db.commit()
-    return {"message": "SMTP configuration successfully stored in tasks.db!"}
 
 # --- TODO ENDPOINTS ---
 
@@ -201,6 +177,19 @@ def delete_todo(
     db.delete(db_todo)
     db.commit()
     return None
+
+# --- SERVE FRONTEND STATIC FILES (Production Build) ---
+dist = os.path.join(os.path.dirname(__file__), "../../dist")
+
+if os.path.exists(dist):
+    app.mount("/assets", StaticFiles(directory=os.path.join(dist, "assets")), name="assets")
+
+    @app.get("/{full_path:path}")
+    async def serve_frontend(full_path: str):
+        file_path = os.path.join(dist, full_path)
+        if os.path.exists(file_path) and os.path.isfile(file_path):
+            return FileResponse(file_path)
+        return FileResponse(os.path.join(dist, "index.html"))
 
 if __name__ == "__main__":
     import uvicorn

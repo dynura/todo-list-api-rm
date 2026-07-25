@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
+import API from '../../api/api';
 
 export default function VerifyEmail({ onSwitchToLogin }) {
-    // Read the 'token' parameter directly from the browser URL
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
 
-    const [status, setStatus] = useState('loading'); // 'loading' | 'success' | 'error'
+    const [status, setStatus] = useState('loading');
     const [message, setMessage] = useState('Verifying your email address...');
 
     useEffect(() => {
@@ -15,28 +15,20 @@ export default function VerifyEmail({ onSwitchToLogin }) {
             return;
         }
 
-        fetch(`http://127.0.0.1:8000/auth/verify-email?token=${token}`, {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
-        })
-            .then(async (res) => {
-                const data = await res.json();
-                if (res.ok) {
-                    setStatus('success');
-                    setMessage('Email verified successfully! Redirecting to login...');
-                    
-                    // Auto redirect to login after 3 seconds
-                    setTimeout(() => {
-                        if (onSwitchToLogin) onSwitchToLogin();
-                    }, 3000);
-                } else {
-                    setStatus('error');
-                    setMessage(data.detail || 'Verification failed or link has expired.');
-                }
+        // Use relative path or API instance instead of hardcoded localhost
+        API.get(`/auth/verify-email?token=${token}`)
+            .then((res) => {
+                setStatus('success');
+                setMessage('Email verified successfully! Redirecting to login...');
+                
+                setTimeout(() => {
+                    if (onSwitchToLogin) onSwitchToLogin();
+                }, 3000);
             })
-            .catch(() => {
+            .catch((err) => {
                 setStatus('error');
-                setMessage('Could not connect to the authentication server.');
+                const errorMsg = err.response?.data?.detail || 'Verification failed or link has expired.';
+                setMessage(errorMsg);
             });
     }, [token, onSwitchToLogin]);
 
