@@ -207,8 +207,10 @@ def delete_todo(
 dist = os.path.join(os.path.dirname(__file__), "../../dist")
 
 if os.path.exists(dist):
-    app.mount("/assets", StaticFiles(directory=os.path.join(dist, "assets")), name="assets")
+    # Mount the entire dist directory at the root level for static assets (js, css, icons)
+    app.mount("/", StaticFiles(directory=dist, html=True), name="dist_static")
 
+    # Fallback catch-all for client-side routing (Single Page App support)
     @app.get("/{full_path:path}")
     async def serve_frontend(full_path: str):
         file_path = os.path.join(dist, full_path)
