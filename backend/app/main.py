@@ -20,7 +20,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 from .database import engine, Base, get_db
-from .models import User, Todo, SMTPConfig
+from .models import User, Todo
 from .schemas import TodoCreate, TodoResponse, TodoUpdate
 from .auth import router as auth_router, get_current_user
 
@@ -77,31 +77,6 @@ def read_root():
 @app.get("/protected")
 def read_protected_route(current_user: str = Depends(get_current_user)):
     return {"message": f"Hello {current_user}, you have access to this protected endpoint!"}
-
-# --- ADMIN / SETUP ENDPOINTS ---
-
-class SMTPCreateSchema(BaseModel):
-    username: str
-    password: str
-    from_email: str
-    host: str = "smtp-relay.brevo.com"
-    port: int = 587
-
-@app.post("/admin/setup-smtp", tags=["Admin Setup"])
-def setup_smtp(config: SMTPCreateSchema, db: Session = Depends(get_db)):
-    db.query(SMTPConfig).update({"is_active": False})
-    
-    new_config = SMTPConfig(
-        host=config.host,
-        port=config.port,
-        username=config.username,
-        password=config.password,
-        from_email=config.from_email,
-        is_active=True
-    )
-    db.add(new_config)
-    db.commit()
-    return {"message": "SMTP configuration successfully stored in tasks.db!"}
 
 # --- TODO ENDPOINTS ---
 
