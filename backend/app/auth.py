@@ -1,7 +1,7 @@
 import os
 from datetime import datetime, timedelta, timezone
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Request, BackgroundTasks
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
 from jose import JWTError, jwt
@@ -89,41 +89,44 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
 # Endpoints
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def register_user(request: Request, user_data: UserCreate, db: Session = Depends(get_db)):
+async def register_user(
+    request: Request, 
+    user_data: UserCreate, 
+    background_tasks: BackgroundTasks, # <--- Added here
+    db: Session = Depends(get_db)
+):
     try:
         existing_user = db.query(User).filter(
             (User.username == user_data.username) | (User.email == user_data.email)
         ).first()
-        
+
         if existing_user:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Username or email already registered"
             )
-        
+
         new_user = User(
             username=user_data.username,
             email=user_data.email,
             hashed_password=get_password_hash(user_data.password),
             is_verified=False
         )
-        
+
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
 
         verify_token = create_verification_token(user_data.email)
-        
-        # Automatically use localhost for local development or the live request host/Render URL for production
+
         base_url = str(request.base_url).rstrip("/")
         if "localhost" in base_url or "127.0.0.1" in base_url:
             verify_url = f"{base_url}/todo-list-api-rm/?token={verify_token}"
         else:
             verify_url = f"https://todo-list-api-rm.onrender.com/todo-list-api-rm/?token={verify_token}"
-        
-        email_sent = send_verification_email(db, user_data.email, verify_url)
-        if not email_sent:
-            print(f"Warning: Account registered for {user_data.email}, but email dispatch failed.")
+
+        # Offload email dispatch to background task
+        background_tasks.add_task(send_verification_email, db, user_data.email, verify_url)
 
         return new_user
 
